@@ -5,11 +5,14 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MultiLabelBinarizer
-
+from apyori import apriori
+import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #remover msg warnings
 pd.set_option('display.max_rows', None) # mostrar prints completos
+
 
 
 data = pd.read_csv('./dataset.csv', sep=',') #abrindo o arquivo dataset.csv e separando por virgula
@@ -17,7 +20,7 @@ data = pd.read_csv('./dataset.csv', sep=',') #abrindo o arquivo dataset.csv e se
 #print (data.head(10)) # teste
 
 
-############################ TRATAMENTO DOS DADOS ############################
+'''############################ TRATAMENTO DOS DADOS ############################'''
 
 data.columns = ['time', 'sexo', 'idade', 'filhos', 'estadoCivil', 
     'escolaridade', 'ocupacao', 'bairro', 'apae', 'acapam', 'aldeiasSOS', 
@@ -92,43 +95,215 @@ data = data.drop('meses', 1) #excluir coluna
 #print (data.loc[:, 'Abril':].head(20))
 
 
-data = data.replace(np.nan, 0)
+data = data.replace(np.nan, 'Abstenção')
 #print (data.loc[:, 'apae':'hemocentro'].head(20))
 
+data = data.replace([5, 4, 3, 2, 1],['Máximo', 'Alto', 'Médio', 'Baixo', 'Mínimo'])
 #data = data.replace(['Muito Importante', 'Importante', 'Mediana', 'Às vezes é Importante', 'Não é Importante'],[5, 4, 3, 2, 1])
+#data = data.fe.replace(['5', '4', '3', '2', '1'],['Máximo', 'Alto', 'Médio', 'Baixo', 'Mínimo'])
+#data['fe'] = data['fe'].apply(str).str.replace(['5', '4', '3', '2', '1'],['Máximo', 'Alto', 'Médio', 'Baixo', 'Mínimo'])
+#print (data.loc[:, 'apae':'hemocentro'].head(20))
+#print (data.fe.head(20))
+
+#data['renda'] = data['renda'].apply(str).str.replace([' (até 1 s.m.)', ' (a 1 a 3 s.m.)', ' (de 3 a 5 s.m.)', ' (de 5 a 10 s.m.)', ' (mais que 10 s.m.)'],[''])
+#data['renda'] = data['renda'].apply(str).str.replace(' (até 1 s.m.)','')
+data = data.replace(['Até R$ 1.100,00 (até 1 s.m.)', 'De R$ 1.100,01 a R$ 3.300,00 (de 1 a 3 s.m.)', 'De R$ 3.300,01 a R$ 5.500,00 (de 3 a 5 s.m.)', 'De R$ 5.500,01 a R$ 11.000,00 (de 5 a 10 s.m.)', 'Mais que R$ 11.000,01 (mais que 10 s.m.)'], 
+['Até 1 S.M.', 'De 1 a 3 S.M.', 'De 3 a 5 S.M.', 'De 5 a 10 S.M.', 'Mais que 10 S.M.'])
 
 
 
+
+
+'''################################# ANALISES DESCRITIVAS ##########################3###############'''
+
+#############################################################################
+# histograma 2x2 = BAIRROS
+fig, axs = plt.subplots(2, 1, tight_layout=True)
+axs[0].hist(data['bairro'], bins=len(data['bairro']))
+axs[0].set_title('Distribuição por Bairros Absolutas')
+#plt.xticks(rotation=50, wrap=True)
+plt.setp(axs[0].xaxis.get_majorticklabels(), rotation=60, wrap=True)
+axs[1].hist(data['bairro'], bins=len(data['bairro']), density=True)
+axs[1].yaxis.set_major_formatter(PercentFormatter(xmax=1))
+axs[1].set_title('Distribuição por Bairros Relativas')
+#plt.xticks(rotation=50, wrap=True)
+plt.setp(axs[1].xaxis.get_majorticklabels(), rotation=60, wrap=True)
+plt.show()
 
 
 '''
+#############################################################################
+# grafico pizza 4x4 = IDADE, ESPIRITUALIDADE, ESTADO CIVIL e FILHOS
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2) 
 
-#testeColunasNome(data)
-data = colunasNome(data)
+# proporção por idade
+#fig, ax1 = plt.subplots()
+labels = data.idade.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.idade == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+#ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.legend(pie[0],labels, bbox_to_anchor=(0,0.5), loc="lower left", bbox_transform=plt.gcf().transFigure)
+#ax1.legend(labels, loc='lower left')
+ax1.set_title('Distribuição por Idade')
+#plt.show()
 
-#testeExcluirColuna(data, 'time')
-data = excluirColuna(data, 'time')
-#testeExcluirColuna(data, 'aceitar')
-data = excluirColuna(data, 'aceitar')
+# proporção de espiritualidade
+#fig, ax2 = plt.subplots()
+labels = data.fe.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.fe == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+#ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+pie = ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax2.legend(pie[0],labels, bbox_to_anchor=(1,0.5), loc="lower right", bbox_transform=plt.gcf().transFigure)
+#ax2.legend(labels, loc='center right')
+ax2.set_title('Nível de Espiritualidade')
+#plt.show()
 
-#testeNotasToInt(data, 30)
-data = notasToInt(data)
+# proporção por estado civil
+#fig, ax3 = plt.subplots()
+labels = data.estadoCivil.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.estadoCivil == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax3.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax3.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax3.legend(pie[0],labels, bbox_to_anchor=(0,0), loc="lower left", bbox_transform=plt.gcf().transFigure)
+ax3.set_title('Distribuição por Estado Civil')
+#plt.show()
 
-#testeBinarizacao(data, 'midias', 30)
-data, midias = binarizacao(data, 'midias')
-#testeBinarizacao(data, 'preferencias', 30)
-data, preferencias = binarizacao(data, 'preferencias')
-#testeBinarizacao(data, 'meses', 100)
-data, meses = binarizacao(data, 'meses')
-
-#testeToTexto(data, 20)
-#data = toTexto(data)
-
-
-#idades(data, 'idade')
-comunicacao(data, midias)
+# proporção de filhos
+#fig, ax4 = plt.subplots()
+labels = data.filhos.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.filhos == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax4.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax4.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax4.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
+ax4.set_title('Distribuição por Filhos')
+plt.show()
+'''
 
 '''
+###############################################################################################################
+# grafico pizza 4x4 = ESCOLARIDADE, RENDA, OCUPAÇÃO e GÊNERO
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2) 
+
+# proporção por ESCOLARIDADE
+#fig, ax1 = plt.subplots()
+labels = data.escolaridade.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.escolaridade == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+#ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.legend(pie[0],labels, bbox_to_anchor=(0,0.5), loc="lower left", bbox_transform=plt.gcf().transFigure)
+#ax1.legend(labels, loc='lower left')
+ax1.set_title('Distribuição por Escolaridade')
+#plt.show()
+
+# proporção de Renda
+#fig, ax2 = plt.subplots()
+labels = data.renda.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.renda == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+#ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+pie = ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax2.legend(pie[0],labels, bbox_to_anchor=(1,0.5), loc="lower right", bbox_transform=plt.gcf().transFigure)
+#ax2.legend(labels, loc='center right')
+ax2.set_title('Distribuição por Renda')
+#plt.show()
+
+# proporção por ocupação
+#fig, ax3 = plt.subplots()
+labels = data.ocupacao.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.ocupacao == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax3.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax3.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax3.legend(pie[0],labels, bbox_to_anchor=(0,0), loc="lower left", bbox_transform=plt.gcf().transFigure)
+ax3.set_title('Distribuição por Ocupação')
+#plt.show()
+
+# proporção de genero
+#fig, ax4 = plt.subplots()
+labels = data.sexo.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.sexo == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax4.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax4.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax4.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
+ax4.set_title('Distribuição por Gênero')
+plt.show()
+'''
+
+'''
+############################################################################
+# grafico pizza 2x2 = AJUDA MAIS e AJUDA MENOS
+fig, (ax1, ax2) = plt.subplots(1, 2)
+
+#fig, ax1 = plt.subplots()
+labels = data.ajudaMais.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.ajudaMais == i]))
+explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+pie = ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+#ax1.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax1.legend(pie[0],labels, bbox_to_anchor=(0,0), loc="lower left", bbox_transform=plt.gcf().transFigure)
+#ax1.legend(labels, loc='lower left')
+ax1.set_title('Quem ajuda mais o Terceiro Setor?')
+#plt.show()
+
+#fig, ax2 = plt.subplots()
+#labels = data.ajudaMenos.unique().tolist()
+sizes = []
+for i in labels:
+    sizes.append(len(data[data.ajudaMenos == i]))
+#explode = [0.1]*len(labels)  # only "explode" the 2nd slice (i.e. 'Hogs')
+#ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+pie = ax2.pie(sizes, explode=explode, autopct='%1.1f%%', shadow=True, startangle=90)
+ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+ax2.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
+#ax2.legend(labels, loc='center right')
+ax2.set_title('Quem ajuda menos o Terceiro Setor?')
+plt.show()
+'''
+
+
+
+
+
+
+'''################## ALGORITMO APRIORI (REGRA DE ASSOCIAÇÃO) ###################'''
+
+
+#data = data.astype(str)
+#print (data.head(30))
+#print (data.values.tolist())
+
+#association_rules = apriori(data.values.tolist(), min_support=0.0045, min_confidence=0.2, min_lift=3, min_length=2)
+#association_results = list(association_rules)
+#FONTE: https://stackabuse.com/association-rule-mining-via-apriori-algorithm-in-python/
 
 
 
@@ -157,21 +332,21 @@ no Município de Caicó/RN?
     HISTOGRAMA (absolutos e relativos)
         EFEITO DA PANDEMIA
 
-    GRÁFICO PIZZA 4x4
-        IDADE
-        ESPIRITUALIDADE
-        ESTADO CIVIL
-        FILHOS
+                    GRÁFICO PIZZA 4x4
+                        IDADE
+                        ESPIRITUALIDADE
+                        ESTADO CIVIL
+                        FILHOS
 
-    GRÁFICO PIZZA 4x4
-        ESCOLARIDADE
-        RENDA
-        OCUPAÇÃO
-        GÊNERO
+                    GRÁFICO PIZZA 4x4
+                        ESCOLARIDADE
+                        RENDA
+                        OCUPAÇÃO
+                        GÊNERO
 
-    GRÁFICO PIZZA 2x2
-        FINANCIA MAIS
-        FINANCIA MENOS
+                    GRÁFICO PIZZA 2x2
+                        FINANCIA MAIS
+                        FINANCIA MENOS
 
     GRÁFICO PIZZA 4x4
         MEIO DE COMUNICAÇÃO
