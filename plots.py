@@ -12,7 +12,7 @@ def make_autopct(values):
             val = 0
         else:
             val = int(round(pct*total/100.0))
-        if pct < 3:
+        if pct <= 3:
             return ''
         if pct < 10:
             return '{v:d}\n({p:.0f}%)'.format(p=pct,v=val)
@@ -32,7 +32,12 @@ def make_autopct2(values, value):
 
 def make_autopct3(value1, value2):
     total = value1 + value2
-    return '{v:d}\n({p:.1f}%)'.format(p=(value1/total*100.0),v=value1)
+    pct = (value1/total*100.0)
+    if pct <= 3:
+        return ''
+    if pct < 10:
+        return '{v:d} ({p:.1f}%)'.format(p=pct,v=value1)
+    return '{v:d}\n({p:.1f}%)'.format(p=pct,v=value1)
 
 def testeMax(values):
     if len(values) == 0:
@@ -92,17 +97,18 @@ def testeNome(nome):
     return nome.upper()
 
 
-def pizza(data, atributo, titulo):
-    fig, ax = plt.subplots(figsize=(12, 6))
+def pizza(data, atributo, titulo, pasta):
+    fig, ax = plt.subplots(figsize=(8, 6))
     labels, explode, values = testeData(data, atributo)
     pie = ax.pie(values, explode=explode, autopct=make_autopct(values), shadow=True, startangle=90)
     ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
     ax.set_title(titulo)
-    plt.show()
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
 
 
-def pizza2D_ajuda(data, atributo1, atributo2, titulo1, titulo2):
+def pizza2D_ajuda(data, atributo1, atributo2, titulo1, titulo2, pasta):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
     labels, explode, values = testeData(data, atributo1)
     pie = ax1.pie(values, explode=explode, autopct=make_autopct(values), shadow=True, startangle=90)
@@ -115,7 +121,8 @@ def pizza2D_ajuda(data, atributo1, atributo2, titulo1, titulo2):
     ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax2.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
     ax2.set_title(titulo2)
-    plt.show()
+    plt.savefig(pasta+titulo1, format='png')
+    #plt.show()
 
 
 def pizza4D_ajuda(data1, data2, atributo1, atributo2, titulo1, titulo2, titulo3, titulo4):
@@ -146,8 +153,8 @@ def pizza4D_ajuda(data1, data2, atributo1, atributo2, titulo1, titulo2, titulo3,
     plt.show()
 
 
-def pizza2D(data1, data2, atributo, titulo1, titulo2):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+def pizza2D(data1, data2, atributo, titulo1, titulo2, pasta):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     labels, explode, values = testeData(data1, atributo)
     pie = ax1.pie(values, explode=explode, autopct=make_autopct(values), shadow=True, startangle=90)
     ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
@@ -159,10 +166,11 @@ def pizza2D(data1, data2, atributo, titulo1, titulo2):
     ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     ax2.legend(pie[0],labels, bbox_to_anchor=(1,0), loc="lower right", bbox_transform=plt.gcf().transFigure)
     ax2.set_title(titulo2)
-    plt.show()
+    plt.savefig(pasta+titulo1, format='png')
+    #plt.show()
 
 
-def barras(data, labels, titulo):
+def barras(data, labels, titulo, pasta):
     fig, ax = plt.subplots(figsize=(12, 6))
     width = 0.35
     aux = 0
@@ -179,11 +187,12 @@ def barras(data, labels, titulo):
     for value in values:
         plt.annotate(make_autopct2(values, value), xy = (aux, value), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
         aux += 1
-    plt.show()
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
 
 
-def barras_bairros(data, atributo, titulo):
-    fig, ax = plt.subplots(figsize=(12, 6))
+def barras_bairros(data, atributo, titulo, pasta):
+    fig, ax = plt.subplots(figsize=(24, 8))
     width = 0.35
     aux = 0
     labels, explode, values = testeData(data, atributo)
@@ -202,11 +211,12 @@ def barras_bairros(data, atributo, titulo):
         #plt.annotate('{v:d}\n({p:.1f}%)'.format(p=(value/total*100.0),v=value), xy = (aux, value), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
         plt.annotate(make_autopct2(values, value), xy = (aux, value), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
         aux += 1
-    plt.show()
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
 
 
-def barras2D_bairros(data1, data2, atributo, titulo1, titulo2):
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 6))
+def barras2D_bairros(data1, data2, atributo, titulo1, titulo2, pasta):
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(24, 8))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
     width = 0.35
     aux = 0
@@ -238,10 +248,11 @@ def barras2D_bairros(data1, data2, atributo, titulo1, titulo2):
     for value in values:
         ax2.annotate(make_autopct2(values, value), xy = (aux, value), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
         aux += 1
-    plt.show()
+    plt.savefig(pasta+titulo1, format='png')
+    #plt.show()
 
 
-def barras2D(data1, data2, labels, titulo1, titulo2):
+def barras2D(data1, data2, labels, titulo1, titulo2, pasta):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 6))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.5)
     width = 0.35
@@ -273,7 +284,8 @@ def barras2D(data1, data2, labels, titulo1, titulo2):
     for value in values:
         ax2.annotate(make_autopct2(values, value), xy = (aux, value), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
         aux += 1
-    plt.show()
+    plt.savefig(pasta+titulo1, format='png')
+    #plt.show()
 
 
 def testeNotas(data, entidades, nota):
@@ -287,7 +299,7 @@ def testeNotas(data, entidades, nota):
         valuesAbstencao.append(abstencao)
     return valuesAvaliacao, valuesPopularidade, valuesAbstencao
 
-def barras_avaliacao(data, labels, notas, titulo):
+def barras_avaliacao(data, labels, notas, titulo, pasta):
     fig, ax = plt.subplots(figsize=(12, 6))
     bases = [0]*len(labels)
     for nota in notas:
@@ -297,21 +309,21 @@ def barras_avaliacao(data, labels, notas, titulo):
         #print (nota, avaliacoes)
         aux = 0
         for avaliacao, popularidade, base in zip(avaliacoes, popularidades, bases):
-            if avaliacao >= 5:
-                plt.annotate(make_autopct3(avaliacao, popularidade-avaliacao), xy = (aux, base-avaliacao/2-2), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=8)
+            plt.annotate(make_autopct3(avaliacao, popularidade-avaliacao), xy = (aux, base-avaliacao/2-2), xytext = (0,0), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=7)
             aux += 1
     ax.set_title(titulo)
     #ax.set_xticks(labels)
-    ax.set_ylim(0, 160)
+    #ax.set_ylim(0, 160)
     ax.legend()
     labels = testeNome(labels)
     wrapped_labels = [label.replace(' ', '\n') for label in labels]
     ax.set_xticklabels(wrapped_labels)
-    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, wrap=True, fontsize=9)    
-    plt.show()
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, wrap=True, fontsize=9)
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
 
 
-def barras_popularidade(data, labels, titulo):
+def barras_popularidade(data, labels, titulo, pasta):
     fig, ax = plt.subplots(figsize=(12, 6))
     width = 0.35
     x = np.arange(len(labels))
@@ -320,8 +332,8 @@ def barras_popularidade(data, labels, titulo):
     ax.bar(x-width/2, popularidades, width, label='Conhece')
     ax.bar(x+width/2, abstencoes, width, label='Não conhece')
     for popularidade, abstencao in zip(popularidades, abstencoes):
-        plt.annotate(make_autopct3(popularidade, abstencao), xy = (aux-width/2, popularidade), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
-        plt.annotate(make_autopct3(abstencao, popularidade), xy = (aux+width/2, abstencao), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom')
+        plt.annotate(make_autopct3(popularidade, abstencao), xy = (aux-width/2, popularidade), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=8)
+        plt.annotate(make_autopct3(abstencao, popularidade), xy = (aux+width/2, abstencao), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=8)
         aux += 1
     #ax.axhline(0, color='grey', linewidth=0.8)
     ax.set_title(titulo)
@@ -331,37 +343,58 @@ def barras_popularidade(data, labels, titulo):
     labels = testeNome(labels)
     wrapped_labels = [label.replace(' ', '\n') for label in labels]
     ax.set_xticklabels(wrapped_labels)
-    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, wrap=True, fontsize=9)    
-    plt.show()
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, wrap=True, fontsize=9)
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
+
+def testeZero(data, label):
+    labels = data[label].unique().tolist()
+    for l in labels:
+        if 'Zero' in l:
+            return l
+
+def barras_doacoes(data, labels, titulo, pasta):
+    fig, ax = plt.subplots(figsize=(12, 8))
+    width = 0.35
+    x = np.arange(len(labels))
+    aux = 0
+    naoAjuda, ajudaComAlgo = [], []
+    for label in labels:
+        zero = testeZero(data, label)
+        #print (label, zero)
+        ajudaComAlgo.append(len(data[data[label] != zero]))
+        naoAjuda.append(len(data[data[label] == zero]))
+    ax.bar(x-width/2, ajudaComAlgo, width, label='Ajudam com algo')
+    ax.bar(x+width/2, naoAjuda, width, label='Não ajudam')
+    for ajuda, nao in zip(ajudaComAlgo, naoAjuda):
+        plt.annotate(make_autopct3(ajuda, nao), xy = (aux-width/2, ajuda), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=8)
+        plt.annotate(make_autopct3(nao, ajuda), xy = (aux+width/2, nao), xytext = (0,0.2), textcoords = "offset points", ha = 'center', va = 'bottom', fontsize=8)
+        aux += 1
+    #ax.axhline(0, color='grey', linewidth=0.8)
+    ax.set_title(titulo)
+    ax.set_xticks(x)
+    #ax.set_ylim(0, 150)
+    ax.legend()
+    labels = testeNome(labels)
+    wrapped_labels = [label.replace(' ', '\n') for label in labels]
+    ax.set_xticklabels(wrapped_labels)
+    plt.setp(ax.xaxis.get_majorticklabels(), rotation=0, wrap=True, fontsize=9)
+    plt.savefig(pasta+titulo, format='png')
+    #plt.show()
 
 
-def clustering3D(data, target):
-    X = data.iloc[:,:2]
-    y = target
-    #X = data[:, :10]
-    #x_min, x_max = X.iloc[:, 0].min() - 0.5, X.iloc[:, 0].max() + 0.5
-    #y_min, y_max = X.iloc[:, 1].min() - 0.5, X.iloc[:, 1].max() + 0.5
-    #plt.figure(2, figsize=(8, 6))
-    #plt.clf()
-    # Plot the training points
-    #plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=y, cmap=plt.cm.Set1, edgecolor="k")
-    #plt.xlabel("X")
-    #plt.ylabel("Y")
-    #plt.xlim(x_min, x_max)
-    #plt.ylim(y_min, y_max)
-    #plt.xticks(())
-    #plt.yticks(())
-    # To getter a better understanding of interaction of the dimensions
-    # plot the first three PCA dimensions
+def clustering3D(data):
+    X = data.loc[:, data.columns != 'target']
+    target = data['target']
     fig = plt.figure(1, figsize=(12, 6))
     ax = Axes3D(fig, elev=-150, azim=110)
-    X_reduced = PCA(n_components=3).fit_transform(data)
+    X_reduced = PCA(n_components=3).fit_transform(X)
     #print (X_reduced)
-    scatter = ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c=y, cmap=plt.cm.Set1, edgecolor="k", s=40)
+    scatter = ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c=target, cmap=plt.cm.Set1, edgecolor="k", s=40)
     legend1 = ax.legend(*scatter.legend_elements(), title="Grupos")
     ax.add_artist(legend1.get_title())
     #ax.legend()
-    title = 'ANÁLISE DE AGRUPAMENTOS COM '+str(len(np.unique(y)))+' GRUPOS'
+    title = 'ANÁLISE DE AGRUPAMENTOS COM '+str(len(np.unique(target)))+' GRUPOS'
     ax.set_title(title)
     ax.set_xlabel("X")
     ax.w_xaxis.set_ticklabels([])
@@ -369,7 +402,7 @@ def clustering3D(data, target):
     ax.w_yaxis.set_ticklabels([])
     ax.set_zlabel("Z")
     ax.w_zaxis.set_ticklabels([])
-    plt.savefig(title)
+    #plt.savefig(pasta+title, format='png')
     plt.show()
 
 

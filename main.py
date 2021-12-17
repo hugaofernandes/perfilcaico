@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MultiLabelBinarizer
 import itertools
+from pathlib import Path
 from sklearn.cluster import KMeans
-
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning) #remover msg warnings
@@ -92,6 +92,8 @@ data = pd.concat([data, expandedLabels], axis=1)
 data = data.drop('usuario', 1) #excluir coluna
 data = data.drop('nan', 1) #excluir coluna vazia
 #print (data.columns)
+data.rename(columns={'Centro de Valorização da Vida - CVV':'CVV Caicó'}, inplace=True)
+
 
 mlb = MultiLabelBinarizer() #algoritmo de binarização
 data['midias'] = data['midias'].apply(str).str.replace(', ', ',') #padronizando o formato das virgulas
@@ -140,22 +142,24 @@ data = data.drop('meses', 1) #excluir coluna
 
 '''########################### PERFIL GERAL ##########################'''
 
-from plots import barras, barras2D, barras2D_bairros, barras_avaliacao, barras_bairros, barras_popularidade, clustering3D, pizza2D, pizza2D_ajuda, pizza4D_ajuda, pizza, testeNome
+from plots import barras, barras2D, barras2D_bairros, barras_avaliacao, barras_bairros, barras_popularidade, clustering3D, pizza2D, pizza2D_ajuda, pizza4D_ajuda, pizza, testeNome, barras_doacoes
 
-#barras_bairros(data, 'bairro', 'DISTRIBUIÇÃO GERAL POR BAIRROS')
-#pizza(data, 'idade', 'DISTRIBUIÇÃO GERAL POR IDADE')
-#pizza(data, 'fe', 'NÍVEL DE ESPIRITUALIDADE GERAL')
-#pizza(data, 'estadoCivil', 'DISTRIBUIÇÃO GERAL POR ESTADO CIVIL')
-#pizza(data, 'filhos', 'DISTRIBUIÇÃO GERAL POR FILHOS')
-#pizza(data, 'escolaridade', 'DISTRIBUIÇÃO GERAL POR ESCOLARIDADE')
-#pizza(data, 'renda', 'FAIXA DE RENDA DOMICILIAR GERAL')
-#pizza(data, 'ocupacao', 'DISTRIBUIÇÃO GERAL POR OCUPAÇÃO')
-#pizza(data, 'sexo', 'DISTRIBUIÇÃO GERAL POR GÊNERO')
-#pizza(data, 'pandemia', 'EFEITOS DA PANDEMIA NAS CONTRIBUIÇÕES')
-#pizza2D_ajuda(data, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS O TERCEITO SETOR?', 'QUEM AJUDA MENOS O TERCEIRO SETOR?')
-#barras(data, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO MAIS UTILIZADOS NO GERAL')
-#barras(data, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÕES NO GERAL')
-#barras(data, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS PARA COLABORAÇÕES NO GERAL')
+pasta = './PERFIL GERAL/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+#barras_bairros(data, 'bairro', 'DISTRIBUIÇÃO GERAL POR BAIRROS', pasta)
+#pizza(data, 'idade', 'DISTRIBUIÇÃO GERAL POR IDADE', pasta)
+#pizza(data, 'fe', 'NÍVEL DE ESPIRITUALIDADE GERAL', pasta)
+#pizza(data, 'estadoCivil', 'DISTRIBUIÇÃO GERAL POR ESTADO CIVIL', pasta)
+#pizza(data, 'filhos', 'DISTRIBUIÇÃO GERAL POR FILHOS', pasta)
+#pizza(data, 'escolaridade', 'DISTRIBUIÇÃO GERAL POR ESCOLARIDADE', pasta)
+#pizza(data, 'renda', 'FAIXA DE RENDA DOMICILIAR GERAL', pasta)
+#pizza(data, 'ocupacao', 'DISTRIBUIÇÃO GERAL POR OCUPAÇÃO', pasta)
+#pizza(data, 'sexo', 'DISTRIBUIÇÃO GERAL POR GÊNERO', pasta)
+#pizza(data, 'pandemia', 'EFEITOS DA PANDEMIA NAS CONTRIBUIÇÕES', pasta)
+#pizza2D_ajuda(data, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS O TERCEITO SETOR?', 'QUEM AJUDA MENOS O TERCEIRO SETOR?', pasta)
+#barras(data, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO MAIS UTILIZADOS NO GERAL', pasta)
+#barras(data, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÕES NO GERAL', pasta)
+#barras(data, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS PARA COLABORAÇÕES NO GERAL', pasta)
 
 
 '''########################### PERFIL POR INSTITUIÇÕES ##########################'''
@@ -169,105 +173,112 @@ def grupos(data, atributo, labels):
             grupoAlvo = grupoAlvo.append(data[data[atributo] == label], ignore_index=True)
     return grupoOposto, grupoAlvo
 
-def entidades(data, entidade):
+def entidades(data, entidade, _pasta):
     bem, ruim = grupos(data, entidade, ['Abstenção', 'Às vezes é Importante', 'Não é Importante', 'Mediana'])
     entidade = testeNome(entidade)
-    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'BAIRROS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)    
-    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'FAIXA DE IDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'NÍVEL DE ESPIRITUALIDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'ESTADO CIVIL DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'RELAÇÃO DE FILHOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'ESCOLARIDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'RENDA DOMICILIAR DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'OCUPAÇÃO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'GÊNERO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    #pizza4D_ajuda(bem, ruim, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE AVALIAM BEM A '+entidade.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE AVALIAM BEM A '+entidade.upper(), 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE AVALIAM RUIM A '+entidade.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE AVALIAM RUIM A '+entidade.upper())
-    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade)
-    #barras2D(bem, ruim, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'Centro de Valorização da Vida - CVV', 'Risoterapia', 'Hemocentro Caicó'], 'USUÁRIOS QUE AVALIAM BEM A '+entidade.upper(), 'USUÁRIOS QUE AVALIAM RUIM A '+entidade.upper())
+    _pasta = _pasta+entidade+'/'
+    Path(_pasta).mkdir(parents=True, exist_ok=True)
+    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'BAIRROS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)    
+    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'FAIXA DE IDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'NÍVEL DE ESPIRITUALIDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'ESTADO CIVIL DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'RELAÇÃO DE FILHOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'ESCOLARIDADE DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'RENDA DOMICILIAR DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'OCUPAÇÃO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'GÊNERO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE AVALIAM BEM A ENTIDADE:\n'+entidade, 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE AVALIAM RUIM A ENTIDADE:\n'+entidade, _pasta)
 
-barras_avaliacao(data, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], ['Muito Importante', 'Importante', 'Mediana', 'Às vezes é Importante', 'Não é Importante'], 'AVALIAÇÃO GERAL DAS ENTIDADES DA REGIÃO')
-#barras_popularidade(data, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], 'POPULARIDADE DAS ENTIDADES DA REGIÃO')
-#entidades(data, 'apae')
-#entidades(data, 'acapam')
-#entidades(data, 'aldeiasSOS')
-#entidades(data, 'abrigo')
-#entidades(data, 'caritas')
-#entidades(data, 'fazendaEsperanca')
-#entidades(data, 'cvv')
-#entidades(data, 'risoterapia')
-#entidades(data, 'hemocentro')
+pasta = './PERFIL POR INSTITUIÇÃO/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+#barras_avaliacao(data, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], ['Muito Importante', 'Importante', 'Mediana', 'Às vezes é Importante', 'Não é Importante'], 'AVALIAÇÃO GERAL DAS ENTIDADES DA REGIÃO', pasta)
+#barras_popularidade(data, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], 'POPULARIDADE DAS ENTIDADES DA REGIÃO', pasta)
+#entidades(data, 'apae', pasta)
+#entidades(data, 'acapam', pasta)
+#entidades(data, 'aldeiasSOS', pasta)
+#entidades(data, 'abrigo', pasta)
+#entidades(data, 'caritas', pasta)
+#entidades(data, 'fazendaEsperanca', pasta)
+#entidades(data, 'cvv', pasta)
+#entidades(data, 'risoterapia', pasta)
+#entidades(data, 'hemocentro', pasta)
 
 
 '''########################### PERFIL POR USUÁRIOS ##########################'''
 
-def usuarios(data, entidade):
+def usuarios(data, entidade, _pasta):
     bem, ruim = grupos(data, entidade, [0])
     entidade = testeNome(entidade)
-    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'BAIRROS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)    
-    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'FAIXA DE IDADE DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'NÍVEL DE ESPIRITUALIDADE DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'ESTADO CIVIL DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'RELAÇÃO DE FILHOS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS USUÁRIOS DA ENTIDADE: '+entidade, 'ESCOLARIDADE DOS NÃO USUÁRIOS DA ENTIDADE: '+entidade)
-    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'RENDA DOMICILIAR DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'OCUPAÇÃO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'GÊNERO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    #pizza4D_ajuda(bem, ruim, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE AVALIAM BEM A '+entidade.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE AVALIAM BEM A '+entidade.upper(), 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE AVALIAM RUIM A '+entidade.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE AVALIAM RUIM A '+entidade.upper())
-    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS DE COLABORAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MESES PREFERIDOS DE COLABORAÇÃO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade)
-    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS DE COLABORAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MEIOS PREFERIDOS DE COLABORAÇÃO DOS NÃOUSUÁRIOS DA ENTIDADE:\n'+entidade)
-    #barras2D(bem, ruim, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'Centro de Valorização da Vida - CVV', 'Risoterapia', 'Hemocentro Caicó'], 'USUÁRIOS QUE AVALIAM BEM A '+entidade.upper(), 'USUÁRIOS QUE AVALIAM RUIM A '+entidade.upper())
+    _pasta = _pasta+entidade+'/'
+    Path(_pasta).mkdir(parents=True, exist_ok=True)
+    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'BAIRROS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)    
+    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'FAIXA DE IDADE DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'NÍVEL DE ESPIRITUALIDADE DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'ESTADO CIVIL DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'RELAÇÃO DE FILHOS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS USUÁRIOS DA ENTIDADE: '+entidade, 'ESCOLARIDADE DOS NÃO USUÁRIOS DA ENTIDADE: '+entidade, _pasta)
+    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'RENDA DOMICILIAR DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'OCUPAÇÃO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'GÊNERO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS DE COLABORAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MESES PREFERIDOS DE COLABORAÇÃO DOS NÃO USUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
+    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS DE COLABORAÇÃO DOS USUÁRIOS DA ENTIDADE:\n'+entidade, 'MEIOS PREFERIDOS DE COLABORAÇÃO DOS NÃOUSUÁRIOS DA ENTIDADE:\n'+entidade, _pasta)
 
-#barras(data, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'Centro de Valorização da Vida - CVV', 'Risoterapia', 'Hemocentro Caicó'], 'PROPORÇÃO DE USUÁRIOS POR ENTIDADES')
-#usuarios(data, 'APAE Caicó')
-#usuarios(data, 'Acapam')
-#usuarios(data, 'Aldeias Infantis SOS')
-#usuarios(data, 'Abrigo Pedro Gurgel')
-#usuarios(data, 'Cáritas Diocesana')
-#usuarios(data, 'Fazenda da Esperança')
-#usuarios(data, 'Centro de Valorização da Vida - CVV')
-#usuarios(data, 'Risoterapia')
-#usuarios(data, 'Hemocentro Caicó')
+pasta = './PERFIL POR USUÁRIO/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+#barras(data, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'CVV Caicó', 'Risoterapia', 'Hemocentro Caicó'], 'PROPORÇÃO DE USUÁRIOS POR ENTIDADES', pasta)
+#usuarios(data, 'APAE Caicó', pasta)
+#usuarios(data, 'Acapam', pasta)
+#usuarios(data, 'Aldeias Infantis SOS', pasta)
+#usuarios(data, 'Abrigo Pedro Gurgel', pasta)
+#usuarios(data, 'Cáritas Diocesana', pasta)
+#usuarios(data, 'Fazenda da Esperança', pasta)
+#usuarios(data, 'CVV Caicó', pasta)
+#usuarios(data, 'Risoterapia', pasta)
+#usuarios(data, 'Hemocentro Caicó', pasta)
 
 
 '''############################# PERFIL POR DOAÇÕES ##################################'''
 
-def doacoes(data, atributo, labels):
+def doacoes(data, atributo, labels, _pasta):
     bem, ruim = grupos(data, atributo, labels)
     atributo = testeNome(atributo)
-    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'BAIRROS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)    
-    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'FAIXA DE IDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'ESTADO CIVIL DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'RELAÇÃO DE FILHOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'ESCOLARIDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'RENDA DOMICILIAR DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS QUE CONTRIBUEM MAIS COM '+atributo, 'OCUPAÇÃO DOS QUE CONTRIBUEN MENOS COM '+atributo)
-    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'GÊNERO DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    #pizza4D_ajuda(bem, ruim, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE CONTRIBUE MAIS COM '+atributo.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE CONTRIBUE MAIS COM '+atributo.upper(), 'QUEM AJUDA MAIS SEGUNDO AQUELES QUE CONTRIBUE MENOS COM '+atributo.upper(), 'QUEM AJUDA MENOS SEGUNDO AQUELES QUE CONTRIBUE MENOS COM '+atributo.upper())
-    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE CONTRIBUE MENOS COM:\n'+atributo)
-    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo)
-    #barras2D(bem, ruim, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'Centro de Valorização da Vida - CVV', 'Risoterapia', 'Hemocentro Caicó'], 'USUÁRIOS QUE CONTRIBUE MAIS COM '+atributo.upper(), 'USUÁRIOS QUE CONTRIBUE MENOS COM '+atributo.upper())
+    _pasta = _pasta+atributo+'/'
+    Path(_pasta).mkdir(parents=True, exist_ok=True)
+    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'BAIRROS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)    
+    pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'FAIXA DE IDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'ESTADO CIVIL DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'filhos', 'RELAÇÃO DE FILHOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'RELAÇÃO DE FILHOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'escolaridade', 'ESCOLARIDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'ESCOLARIDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'renda', 'RENDA DOMICILIAR DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'RENDA DOMICILIAR DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    pizza2D(bem, ruim, 'ocupacao', 'OCUPAÇÃO DOS QUE CONTRIBUEM MAIS COM '+atributo, 'OCUPAÇÃO DOS QUE CONTRIBUEN MENOS COM '+atributo, _pasta)
+    pizza2D(bem, ruim, 'sexo', 'GÊNERO DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'GÊNERO DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    barras2D(bem, ruim, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MEIOS DE COMUNICAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
+    barras2D(bem, ruim, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MESES PREFERIDOS PARA COLABORAÇÃO DOS QUE CONTRIBUE MENOS COM:\n'+atributo, _pasta)
+    barras2D(bem, ruim, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'MEIOS DE COLABORAÇÃO PREFERIDOS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
 
-#pizza(data, 'dinheiro', 'DOAÇÕES EM DINHEIRO NO ÚLTIMO ANO')
-#pizza(data, 'voluntario', 'TRABALHO VOLUNTÁRIO REALIZADO NO ÚLTIMO ANO')
-#pizza(data, 'alimento', 'DOAÇÕES DE ALIMENTOS NO ÚLTIMO ANO')
-#pizza(data, 'roupas', 'DOAÇÕES DE ROUPAS E AGASALHOS NO ÚLTIMO ANO')
-#pizza(data, 'higiene', 'DOAÇÕES DE PRODUTOS DE LIMPEZA E HIGIENE NO ÚLTIMO ANO')
-#pizza(data, 'racao', 'DOAÇÕES DE RAÇÃO ANIMAL NO ÚLTIMO ANO')
-#pizza(data, 'brinquedos', 'DOAÇÕES DE BRINQUEDOS NO ÚLTIMO ANO')
-#pizza(data, 'sangue', 'DOAÇÕES DE SANGUE NO ÚLTIMO ANO')
-#doacoes(data, 'dinheiro', ['R\\$  0,00 (Zero)', 'Entre R\\$ 1,00 e R\\$ 100,00'])
-#doacoes(data, 'voluntario', ['0 (Zero)'])
-#doacoes(data, 'alimento', ['0 kg (Zero)', 'Entre 1kg e 5 kg'])
-#doacoes(data, 'roupas', ['0 (Zero)', 'Entre 1 e 5', 'Entre 6 e 10'])
-#doacoes(data, 'higiene', ['0 (Zero)'])
-#doacoes(data, 'racao', ['0 kg (Zero)'])
-#doacoes(data, 'brinquedos', ['0 (Zero)'])
-#doacoes(data, 'sangue', ['0 (Zero)'])
+pasta = './PERFIL POR DOAÇÕES/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+#barras_doacoes(data, ['dinheiro', 'voluntario', 'alimento', 'roupas', 'higiene', 'racao', 'brinquedos', 'sangue'], 'POPULARIDADE DAS DOAÇÕES', pasta)
+#pizza(data, 'dinheiro', 'DOAÇÕES EM DINHEIRO NO ÚLTIMO ANO', pasta)
+#pizza(data, 'voluntario', 'TRABALHO VOLUNTÁRIO REALIZADO NO ÚLTIMO ANO', pasta)
+#pizza(data, 'alimento', 'DOAÇÕES DE ALIMENTOS NO ÚLTIMO ANO', pasta)
+#pizza(data, 'roupas', 'DOAÇÕES DE ROUPAS E AGASALHOS NO ÚLTIMO ANO', pasta)
+#pizza(data, 'higiene', 'DOAÇÕES DE PRODUTOS DE LIMPEZA E HIGIENE NO ÚLTIMO ANO', pasta)
+#pizza(data, 'racao', 'DOAÇÕES DE RAÇÃO ANIMAL NO ÚLTIMO ANO', pasta)
+#pizza(data, 'brinquedos', 'DOAÇÕES DE BRINQUEDOS NO ÚLTIMO ANO', pasta)
+#pizza(data, 'sangue', 'DOAÇÕES DE SANGUE NO ÚLTIMO ANO', pasta)
+#doacoes(data, 'dinheiro', ['R\\$  0,00 (Zero)', 'Entre R\\$ 1,00 e R\\$ 100,00'], pasta)
+#doacoes(data, 'voluntario', ['0 (Zero)'], pasta)
+#doacoes(data, 'alimento', ['0 kg (Zero)', 'Entre 1kg e 5 kg'], pasta)
+#doacoes(data, 'roupas', ['0 (Zero)', 'Entre 1 e 5', 'Entre 6 e 10'], pasta)
+#doacoes(data, 'higiene', ['0 (Zero)'], pasta)
+#doacoes(data, 'racao', ['0 kg (Zero)'], pasta)
+#doacoes(data, 'brinquedos', ['0 (Zero)'], pasta)
+#doacoes(data, 'sangue', ['0 (Zero)'], pasta)
 
 
 '''################## REGRAS DE ASSOCIAÇÃO ###################'''
@@ -292,15 +303,12 @@ def confidence(data, atributos, labels): # proporção de X com Y
     x_y = support(data, atributos, labels)
     return  x_y / x
 
-def lift(data, atributos, labels): # para X->Y: se >1, então Y é provável aparecer com X; se <=1, então Y não é provável aparecer com X
-    x = support(data, atributos[:-1], labels[:-1])
-    if x == 0:
-        return 0
+def lift(data, atributos, labels): # lift=1, sem associaçao X_Y; lift>1, association X_Y; lift<1, improvavel X_Y
     y = support(data, atributos[-1:], labels[-1:])
     if y == 0:
         return 0
-    x_y = support(data, atributos, labels)
-    return x_y / (x * y)
+    x_y = confidence(data, atributos, labels)
+    return x_y / y
 
 def conviction(data, atributos, labels): # proporção de X sem Y
     x_y = 1 - confidence(data, atributos, labels)
@@ -315,34 +323,54 @@ def combineLabels(data, atributos):
         labels.append(data[atributo].unique().tolist())
     return list(itertools.product(*labels))
 
-def apriori(data, min_suporte, min_confianca, min_comprimento=2, max_comprimento=2):
+def bestColunas(colunas, atributos):
+    newcolunas = colunas
+    for atributo in atributos:
+        newcolunas.append(atributo)
+    return list(set(newcolunas))
+
+def apriori(data, min_suporte=0, min_confianca=0, min_lift=1, min_comprimento=2, max_comprimento=2, pasta='./REGRA DE ASSOCIAÇÃO/', file='apriori_data.csv'):
     colunas = data.columns.tolist()
-    pd.DataFrame([['Nome', 'Porcentagem', 'Comprimento', 'Atributos', 'Labels']]).to_csv('apriori_data.csv', sep=',', index=False, header=False)
+    pd.DataFrame([['Função', 'Porcentagem', 'Comprimento', 'Atributos', 'Labels']]).to_csv(pasta+file, sep=',', index=False, header=False)
     for comprimento in range(min_comprimento, max_comprimento+1):
-        atributos = list(itertools.combinations(colunas, r=comprimento))
-        print ('atributos combinados:', len(atributos), 'comprimento:', comprimento)
+        #atributos = list(itertools.combinations(colunas, r=comprimento)) # util para lift
+        atributos = list(itertools.permutations(colunas, r=comprimento)) # util para suporte e confiança
+        print ('atributos:', len(colunas), 'combinações:', len(atributos), 'comprimento:', comprimento)
+        #print ('atributos', colunas)
+        colunas = []
         for atributo in atributos:
             labels = combineLabels(data, list(atributo))
             for label in labels:
+                
                 suporte = support(data, list(atributo), list(label))
                 if suporte >= min_suporte:
-                    print ('Support:', suporte, atributo, label)
-                    apriori_data = pd.read_csv('apriori_data.csv', sep=',', header=None)
-                    apriori_data = pd.concat([apriori_data, pd.DataFrame([['Support', suporte, len(atributo), atributo, label]])])
-                    apriori_data.to_csv('apriori_data.csv', sep=',', index=False, header=False)
+                    #print ('Support:', suporte, atributo, label)
+                    #apriori_data = pd.read_csv(pasta+file, sep=',', header=None)
+                    #apriori_data = pd.concat([apriori_data, pd.DataFrame([['Support', suporte, len(atributo), atributo, label]])])
+                    #apriori_data.to_csv(pasta+file, sep=',', index=False, header=False)
+                    
                     confianca = confidence(data, list(atributo), list(label))
                     if confianca >= min_confianca:
-                        print ('Confidence:', confianca, atributo, label)
-                        apriori_data = pd.read_csv('apriori_data.csv', sep=',', header=None)
+                        #print ('Confidence:', confianca, atributo, label)
+                        apriori_data = pd.read_csv(pasta+file, sep=',', header=None)
                         apriori_data = pd.concat([apriori_data, pd.DataFrame([['Confidence', confianca, len(atributo), atributo, label]])])
-                        apriori_data.to_csv('apriori_data.csv', sep=',', index=False, header=False)
+                        apriori_data.to_csv(pasta+file, sep=',', index=False, header=False)
+                        colunas = bestColunas(colunas, atributo)
+                
+                '''levantamento = lift(data, list(atributo), list(label))
+                if levantamento == min_lift:
+                    #print ('Lift:', lift, atributo, label)
+                    apriori_data = pd.read_csv(pasta+file, sep=',', header=None)
+                    apriori_data = pd.concat([apriori_data, pd.DataFrame([['Lift', levantamento, len(atributo), atributo, label]])])
+                    apriori_data.to_csv(pasta+file, sep=',', index=False, header=False)
+                    colunas = bestColunas(colunas, atributo)'''
 
-#apriori(data, 0.9, 0.5, max_comprimento=2)
+pasta = './REGRA DE ASSOCIAÇÃO/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+#apriori(data, min_suporte=0.95, min_confianca=0.9, max_comprimento=10)
 
 
 '''######################## PERFIL POR AGRUPAMENTOS #######################'''
-
-data.to_csv('dataset_processed.csv', sep=',', index=False)
 
 def agrupamento(data, n):
     data['sexo'] = pd.factorize(data['sexo'])[0] #categorização (transformando os dados em inteiros)
@@ -366,48 +394,67 @@ def agrupamento(data, n):
     data['pandemia'] = pd.factorize(data['pandemia'])[0]
     data['fe'] = pd.factorize(data['fe'])[0]
     data['renda'] = pd.factorize(data['renda'])[0]
-    #data = data.astype(int)
     data = (data-data.mean())/data.std() # normalização por desvio padrão
     #data = (data-data.min())/(data.max()-data.min()) # normalização por max e min (entre 0 e 1)
     clustering = KMeans(n_clusters=n)
     clustering.fit(data)
-    #print (data['classes'])
-    #print (data)
-    #print (clustering.labels_)
-    return data, clustering.labels_
+    data['target'] = clustering.labels_
+    return data
 
-data_normalize, target = agrupamento(data, 5)
-#print (data_normalize)
-#clustering3D(data_normalize, target)
-
-data = pd.read_csv('./dataset_processed.csv', sep=',')
-data['target'] = pd.DataFrame(target)
-#print (data)
-
-def charGrupos(data, labels):
+def perfis(data, labels, _pasta):
     grupoOposto, grupoAlvo = grupos(data, 'target', labels)
-    labels = str(labels[0])
-    barras_bairros(grupoAlvo, 'bairro', 'DISTRIBUIÇÃO POR BAIRROS DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'idade', 'DISTRIBUIÇÃO POR IDADE DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'fe', 'NÍVEL DE ESPIRITUALIDADE DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'estadoCivil', 'DISTRIBUIÇÃO POR ESTADO CIVIL DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'filhos', 'DISTRIBUIÇÃO POR FILHOS DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'escolaridade', 'DISTRIBUIÇÃO POR ESCOLARIDADE DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'renda', 'FAIXA DE RENDA DOMICILIAR DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'ocupacao', 'DISTRIBUIÇÃO POR OCUPAÇÃO DO GRUPO: '+labels)
-    pizza(grupoAlvo, 'sexo', 'DISTRIBUIÇÃO POR GÊNERO DO GRUPO: '+labels)
-    pizza2D_ajuda(grupoAlvo, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS O TERCEITO SETOR SEGUNDO O GRUPO: '+labels, 'QUEM AJUDA MENOS O TERCEIRO SETOR SEGUNDO O GRUPO: '+labels)
-    barras(grupoAlvo, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO MAIS UTILIZADOS DO GRUPO: '+labels)
-    barras(grupoAlvo, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÕES DO GRUPO: '+labels)
-    barras(grupoAlvo, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS PARA COLABORAÇÕES DO GRUPO: '+labels)
+    labels = 'GRUPO '+str(labels[0])
+    _pasta = _pasta+labels+'/'
+    Path(_pasta).mkdir(parents=True, exist_ok=True)
+    barras_bairros(grupoAlvo, 'bairro', 'DISTRIBUIÇÃO POR BAIRROS\n'+labels, _pasta)
+    pizza(grupoAlvo, 'idade', 'DISTRIBUIÇÃO POR IDADE\n'+labels, _pasta)
+    pizza(grupoAlvo, 'fe', 'NÍVEL DE ESPIRITUALIDADE\n'+labels, _pasta)
+    pizza(grupoAlvo, 'estadoCivil', 'DISTRIBUIÇÃO POR ESTADO CIVIL\n'+labels, _pasta)
+    pizza(grupoAlvo, 'filhos', 'DISTRIBUIÇÃO POR FILHOS\n'+labels, _pasta)
+    pizza(grupoAlvo, 'escolaridade', 'DISTRIBUIÇÃO POR ESCOLARIDADE\n'+labels, _pasta)
+    pizza(grupoAlvo, 'renda', 'FAIXA DE RENDA DOMICILIAR\n'+labels, _pasta)
+    pizza(grupoAlvo, 'ocupacao', 'DISTRIBUIÇÃO POR OCUPAÇÃO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'sexo', 'DISTRIBUIÇÃO POR GÊNERO\n'+labels, _pasta)
+    pizza2D_ajuda(grupoAlvo, 'ajudaMais', 'ajudaMenos', 'QUEM AJUDA MAIS O TERCEITO SETOR SEGUNDO\n'+labels, 'QUEM AJUDA MENOS O TERCEIRO SETOR SEGUNDO\n'+labels, _pasta)
+    barras(grupoAlvo, ['Rádio', 'Blogs e Sites', 'Televisão', 'Jornais e Revistas', 'Carros de Som', 'Igreja', 'Facebook', 'Instagram', 'Whatsapp'], 'MEIOS DE COMUNICAÇÃO MAIS UTILIZADOS\n'+labels, _pasta)
+    barras(grupoAlvo, ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'], 'MESES PREFERIDOS PARA COLABORAÇÕES\n'+labels, _pasta)
+    barras(grupoAlvo, ['Recolher em casa', 'Transferência ou Depósito', 'Correspondência', 'Pix', 'Troco Solidário', 'Rifas e Sorteios', 'Dízimo'], 'MEIOS PREFERIDOS PARA COLABORAÇÕES\n'+labels, _pasta)
+    
+    barras_avaliacao(grupoAlvo, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], ['Muito Importante', 'Importante', 'Mediana', 'Às vezes é Importante', 'Não é Importante'], 'AVALIAÇÃO GERAL DAS ENTIDADES DA REGIÃO\n'+labels, _pasta)
+    barras_popularidade(grupoAlvo, ['apae', 'acapam', 'aldeiasSOS', 'abrigo', 'caritas', 'fazendaEsperanca', 'cvv', 'risoterapia', 'hemocentro'], 'POPULARIDADE DAS ENTIDADES DA REGIÃO\n'+labels, _pasta)
 
-#charGrupos(data, [0])
-#charGrupos(data, [1])
-#charGrupos(data, [2])
-#charGrupos(data, [3])
-#charGrupos(data, [4])
-#charGrupos(data, [5])
-#charGrupos(data, [6])
-#charGrupos(data, [7])
+    barras(grupoAlvo, ['APAE Caicó', 'Acapam', 'Aldeias Infantis SOS', 'Abrigo Pedro Gurgel', 'Cáritas Diocesana', 'Fazenda da Esperança', 'CVV Caicó', 'Risoterapia', 'Hemocentro Caicó'], 'PROPORÇÃO DE USUÁRIOS POR ENTIDADES\n'+labels, _pasta)
 
+    barras_doacoes(grupoAlvo, ['dinheiro', 'voluntario', 'alimento', 'roupas', 'higiene', 'racao', 'brinquedos', 'sangue'], 'POPULARIDADE DAS DOAÇÕES\n'+labels, _pasta)
+    pizza(grupoAlvo, 'dinheiro', 'DOAÇÕES EM DINHEIRO NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'voluntario', 'TRABALHO VOLUNTÁRIO REALIZADO NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'alimento', 'DOAÇÕES DE ALIMENTOS NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'roupas', 'DOAÇÕES DE ROUPAS E AGASALHOS NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'higiene', 'DOAÇÕES DE PRODUTOS DE LIMPEZA E HIGIENE NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'racao', 'DOAÇÕES DE RAÇÃO ANIMAL NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'brinquedos', 'DOAÇÕES DE BRINQUEDOS NO ÚLTIMO ANO\n'+labels, _pasta)
+    pizza(grupoAlvo, 'sangue', 'DOAÇÕES DE SANGUE NO ÚLTIMO ANO\n'+labels, _pasta)
+
+    #apriori(grupoAlvo.loc[:, data.columns != 'target'], min_suporte=0.95, max_comprimento=10, pasta=_pasta, file='apriori_data ('+labels+').csv')
+
+
+pasta = './PERFIL POR AGRUPAMENTO/'
+Path(pasta).mkdir(parents=True, exist_ok=True)
+
+#data.to_csv(pasta+'dataset_processed.csv', sep=',', index=False)
+#data_clustering = agrupamento(data, 4)
+#data_clustering.to_csv(pasta+'dataset_clustering.csv', sep=',', index=False)
+
+#data_clustering = pd.read_csv(pasta+'dataset_clustering.csv', sep=',')
+#clustering3D(data_clustering)
+
+
+#data = pd.read_csv(pasta+'dataset_processed.csv', sep=',')
+#data_clustering = pd.read_csv(pasta+'dataset_clustering.csv', sep=',')
+#data['target'] = data_clustering['target']
+
+#perfis(data, [0], pasta)
+#perfis(data, [1], pasta)
+#perfis(data, [2], pasta)
+#perfis(data, [3], pasta)
 
