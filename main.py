@@ -173,6 +173,29 @@ def grupos(data, atributo, labels):
             grupoAlvo = grupoAlvo.append(data[data[atributo] == label], ignore_index=True)
     return grupoOposto, grupoAlvo
 
+def doadorNice(data, atributos, labels, index):
+    test = 0
+    for atributo, _labels in zip(atributos, labels):
+        for label in _labels:
+            ind = data.iloc[[index]]
+            if ind[atributo].values[0] != label:
+                test += 1
+                if test >= 3:
+                    return 1
+    return 0
+
+def doadorNiceAndBad(data, atributos, labels):
+    nice = pd.DataFrame()
+    bad = pd.DataFrame()
+    for index in range(len(data)):
+        ind = doadorNice(data, atributos, labels, index)
+        if ind == 0:
+            bad = bad.append(data.iloc[[index]], ignore_index=True)
+        else:
+            nice = nice.append(data.iloc[[index]], ignore_index=True)                
+    return nice, bad
+
+
 def entidades(data, entidade, _pasta):
     bem, ruim = grupos(data, entidade, ['Abstenção', 'Às vezes é Importante', 'Não é Importante', 'Mediana'])
     entidade = testeNome(entidade)
@@ -247,7 +270,7 @@ def doacoes(data, atributo, labels, _pasta):
     atributo = testeNome(atributo)
     _pasta = _pasta+atributo+'/'
     Path(_pasta).mkdir(parents=True, exist_ok=True)
-    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'BAIRROS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)    
+    barras2D_bairros(bem, ruim, 'bairro', 'BAIRROS DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'BAIRROS DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
     pizza2D(bem, ruim, 'idade', 'FAIXA DE IDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'FAIXA DE IDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
     pizza2D(bem, ruim, 'fe', 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'NÍVEL DE ESPIRITUALIDADE DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
     pizza2D(bem, ruim, 'estadoCivil', 'ESTADO CIVIL DOS QUE CONTRIBUEM MAIS COM:\n'+atributo, 'ESTADO CIVIL DOS QUE CONTRIBUEM MENOS COM:\n'+atributo, _pasta)
@@ -272,13 +295,19 @@ Path(pasta).mkdir(parents=True, exist_ok=True)
 #pizza(data, 'brinquedos', 'DOAÇÕES DE BRINQUEDOS NO ÚLTIMO ANO', pasta)
 #pizza(data, 'sangue', 'DOAÇÕES DE SANGUE NO ÚLTIMO ANO', pasta)
 #doacoes(data, 'dinheiro', ['R\\$  0,00 (Zero)', 'Entre R\\$ 1,00 e R\\$ 100,00'], pasta)
+#doacoes(data, 'dinheiro', ['R\\$  0,00 (Zero)'], pasta)
 #doacoes(data, 'voluntario', ['0 (Zero)'], pasta)
 #doacoes(data, 'alimento', ['0 kg (Zero)', 'Entre 1kg e 5 kg'], pasta)
+#doacoes(data, 'alimento', ['0 kg (Zero)'], pasta)
 #doacoes(data, 'roupas', ['0 (Zero)', 'Entre 1 e 5', 'Entre 6 e 10'], pasta)
+#doacoes(data, 'roupas', ['0 (Zero)'], pasta)
 #doacoes(data, 'higiene', ['0 (Zero)'], pasta)
 #doacoes(data, 'racao', ['0 kg (Zero)'], pasta)
 #doacoes(data, 'brinquedos', ['0 (Zero)'], pasta)
 #doacoes(data, 'sangue', ['0 (Zero)'], pasta)
+
+#doaMuito, doaPouco = doadorNiceAndBad(data, ['dinheiro', 'voluntario', 'alimento', 'roupas', 'higiene', 'racao', 'brinquedos', 'sangue'], [['R\\$  0,00 (Zero)'], ['0 (Zero)'], ['0 kg (Zero)'], ['0 (Zero)'], ['0 (Zero)'], ['0 kg (Zero)'], ['0 (Zero)'], ['0 (Zero)']])
+#barras2D_bairros(doaMuito, doaPouco, 'bairro', 'BAIRROS DOS QUE CONTRIBUEM MAIS', 'BAIRROS DOS QUE CONTRIBUEM MENOS', pasta)
 
 
 '''################## REGRAS DE ASSOCIAÇÃO ###################'''
